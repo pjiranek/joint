@@ -11,247 +11,150 @@
 
 #include "joint_iterator.hpp"
 
-template<typename T> std::string to_string(T const & v)
-{
-    std::stringstream s;
-    s << v;
-    return s.str();
-}
+// We do not really test here "joint" iterators but rather a simple vector (of strings) wrapper in the joint iterator.
+// If it works properly for a vector of strings, it works probably also for other data types and multiple vectors.
 
 class TestAlgorithm : public ::testing::Test
 {
     protected:
-        typedef joint::iterator<std::vector<int>::iterator, std::vector<std::string>::iterator> joint_iterator;
+        typedef joint::iterator<std::vector<std::string>::iterator> joint_iterator;
 
         typedef joint_iterator::value_type value_type;
         typedef joint_iterator::reference  reference;
 
-        std::vector<int>         numbers;
-        std::vector<std::string> strings;
-
-        static size_t const size      = 128;
-        static int const    randomMax = 64;
-
-        joint_iterator begin;
-        joint_iterator end;
-
-        void createSortedVectors()
+        std::vector<std::string> createSorted(std::size_t size)
         {
-            numbers.clear();
-            strings.clear();
+            auto vector = createUnsorted(size);
 
-            std::default_random_engine         generator(0);
-            std::uniform_int_distribution<int> distribution(0, randomMax);
+            // I hope I can count on STL sort here. :-)
+            std::sort(vector.begin(), vector.end());
 
-            for (size_t i = 0; i < size; ++i)
-            {
-                int number = distribution(generator);
-                numbers.push_back(number);
-            }
-
-            std::sort(numbers.begin(), numbers.end());
-            for (size_t i = 0; i < size; ++i)
-            {
-                strings.push_back(to_string(numbers[i]));
-            }
-
-            begin = joint::make_joint(numbers.begin(), strings.begin());
-            end   = joint::make_joint(numbers.end(), strings.end());
+            return vector;
         }
 
-        void createRandomVectors()
+        std::vector<std::string> createUnsorted(std::size_t size)
         {
-            numbers.clear();
-            strings.clear();
+            static std::vector<std::string> const nouns   = {"Cat", "Mouse", "Dog", "Elephant"};
+            static std::vector<std::string> const verbs   = {"eats", "plays with", "does not collaborate with"};
+            static std::vector<std::string> const objects = {"cats", "mice", "dogs", "elephants"};
+
+            std::vector<std::string> vector;
 
             std::default_random_engine         generator(0);
-            std::uniform_int_distribution<int> distribution(0, randomMax);
+            std::uniform_int_distribution<int> distribution(0, 1024);
 
             for (size_t i = 0; i < size; ++i)
             {
-                int number = distribution(generator);
-                numbers.push_back(number);
-                strings.push_back(to_string(number));
+                std::string sentence = nouns[distribution(generator) % nouns.size()] + " "
+                                       + verbs[distribution(generator) % verbs.size()] + " "
+                                       + objects[distribution(generator) % objects.size()] + ".";
+
+                vector.push_back(sentence);
             }
 
-            begin = joint::make_joint(numbers.begin(), strings.begin());
-            end   = joint::make_joint(numbers.end(), strings.end());
+            return vector;
         }
 
-        // Test if the string representation of the numbers are consistent.
-        void testVectorsAreEqual() const;
-        void testVectorsAreEqual(std::vector<int> const & numbers,
-                                 std::vector<std::string> const & strings) const;
-        void testVectorsAreEqual(std::vector<int> const & numbers,
-                                 std::vector<std::string> const & strings,
-                                 size_t n) const;
+        template<typename Iterator> joint::iterator<Iterator> make_joint(Iterator iterator)
+        {
+            return joint::make_joint(iterator);
+        }
 
 };
 
-void TestAlgorithm::testVectorsAreEqual() const
-{
-    testVectorsAreEqual(this->numbers, this->strings);
-}
-
-void TestAlgorithm::testVectorsAreEqual(std::vector<int> const & numbers,
-                                        std::vector<std::string> const & strings) const
-{
-    testVectorsAreEqual(numbers, strings, numbers.size());
-}
-
-void TestAlgorithm::testVectorsAreEqual(std::vector<int> const & numbers,
-                                        std::vector<std::string> const & strings,
-                                        size_t n) const
-{
-    std::vector<std::string> test_strings;
-
-    for (size_t i = 0; i < n; ++i)
-        test_strings.push_back(to_string(numbers[i]));
-
-    ASSERT_EQ(test_strings, strings);
-}
-
 TEST_F(TestAlgorithm, Copy)
 {
-    createRandomVectors();
+    auto vector_original = createUnsorted(16);
 
-    std::vector<int>         numbers(size);
-    std::vector<std::string> strings(size);
+    auto vector_source = vector_original;
+    auto vector_target = std::vector<std::string>(vector_source.size());
 
-    auto begin = joint::make_joint(numbers.begin(), strings.begin());
+    auto first1 = make_joint(vector_source.begin());
+    auto last1  = make_joint(vector_source.end());
+    auto first2 = make_joint(vector_target.begin());
 
-    std::copy(this->begin, this->end, begin);
-    EXPECT_EQ(this->numbers, numbers);
-    EXPECT_EQ(this->strings, strings);
-    testVectorsAreEqual(numbers, strings);
+    std::copy(first1, last1, first2);
+
+    EXPECT_EQ(vector_original, vector_source);
+    EXPECT_EQ(vector_original, vector_target);
 }
 
 TEST_F(TestAlgorithm, CopyN)
 {
-    createRandomVectors();
+    auto vector_original = createUnsorted(16);
 
-    std::vector<int>         numbers(size / 2);
-    std::vector<std::string> strings(size / 2);
+    auto vector_source = vector_original;
+    auto vector_target = std::vector<std::string>(vector_source.size() / 2);
 
-    auto begin = joint::make_joint(numbers.begin(), strings.begin());
+    auto first1 = make_joint(vector_source.begin());
+    auto first2 = make_joint(vector_target.begin());
 
-    std::copy_n(this->begin, size / 2, begin);
+    std::copy_n(first1, vector_source.size() / 2, first2);
 
-    EXPECT_TRUE(std::equal(this->numbers.begin(), this->numbers.begin() + size / 2, numbers.begin()));
-    testVectorsAreEqual(numbers, strings);
+    EXPECT_EQ(vector_original, vector_source);
+    EXPECT_TRUE(std::equal(vector_source.begin(),
+                           vector_source.begin() + vector_source.size() / 2,
+                           vector_target.begin()));
 }
 
 TEST_F(TestAlgorithm, CopyBackward)
 {
-    createRandomVectors();
+    auto vector_original = createUnsorted(16);
 
-    std::vector<int>         numbers(size);
-    std::vector<std::string> strings(size);
+    auto vector_source = vector_original;
+    auto vector_target = std::vector<std::string>(vector_source.size());
 
-    auto begin = std::reverse_iterator<joint_iterator>(joint::make_joint(numbers.begin(), strings.begin()));
+    auto first1 = make_joint(vector_source.begin());
+    auto last1  = make_joint(vector_source.end());
+    auto last2 = make_joint(vector_target.end());
 
-    std::copy_backward(this->begin, this->end, begin);
+    std::copy_backward(first1, last1, last2);
 
-    EXPECT_TRUE(std::equal(this->numbers.begin(), this->numbers.end(), numbers.rbegin()));
-    testVectorsAreEqual(numbers, strings);
+    EXPECT_EQ(vector_original, vector_source);
+    EXPECT_EQ(vector_source, vector_target);
 }
 
 TEST_F(TestAlgorithm, Sort)
 {
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
+    auto vector_original = createUnsorted(128);
+    auto vector = vector_original;
 
-    createRandomVectors();
+    auto first = make_joint(vector.begin());
+    auto last  = make_joint(vector.end());
 
-    std::sort(begin, end, comparator);
+    std::sort(first, last);
 
-    EXPECT_TRUE(std::is_sorted(numbers.begin(), numbers.end()));
-    testVectorsAreEqual();
+    EXPECT_TRUE(std::is_sorted(vector.begin(), vector.end()));
+
+    std::sort(vector_original.begin(), vector_original.end());
+    EXPECT_EQ(vector_original, vector);
 }
 
 TEST_F(TestAlgorithm, StableSort)
 {
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
+    auto vector_original = createUnsorted(128);
+    auto vector = vector_original;
 
-    createRandomVectors();
+    auto first = make_joint(vector.begin());
+    auto last  = make_joint(vector.end());
 
-    std::stable_sort(begin, end, comparator);
+    std::stable_sort(first, last);
 
-    EXPECT_TRUE(std::is_sorted(numbers.begin(), numbers.end()));
-    testVectorsAreEqual();
+    EXPECT_TRUE(std::is_sorted(vector.begin(), vector.end()));
+
+    std::sort(vector_original.begin(), vector_original.end());
+    EXPECT_EQ(vector_original, vector);
 }
 
 TEST_F(TestAlgorithm, PartialSort)
 {
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
 
-    createRandomVectors();
+    auto vector = createUnsorted(128);
 
-    std::partial_sort(begin, begin + size / 2, end, comparator);
+    auto first = make_joint(vector.begin());
+    auto last  = make_joint(vector.end());
 
-    EXPECT_TRUE(std::is_sorted(numbers.begin(), numbers.begin() + size / 2));
-    testVectorsAreEqual();
-}
+    std::stable_sort(first, last);
 
-TEST_F(TestAlgorithm, PartialSortCopy)
-{
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
-
-    createRandomVectors();
-
-    std::vector<int>         numbers2(size / 2);
-    std::vector<std::string> strings2(size / 2);
-
-    auto begin2 = joint::make_joint(numbers2.begin(), strings2.begin());
-    auto end2   = joint::make_joint(numbers2.end(), strings2.end());
-
-    std::partial_sort_copy(begin, end, begin2, end2, comparator);
-
-    EXPECT_TRUE(std::is_sorted(numbers2.begin(), numbers2.end()));
-    testVectorsAreEqual();
-    testVectorsAreEqual(numbers2, strings2);
-}
-
-TEST_F(TestAlgorithm, Merge)
-{
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
-
-    createSortedVectors();
-    auto numbers1 = numbers;
-    auto strings1 = strings;
-    auto begin1   = joint::make_joint(numbers1.begin(), strings1.begin());
-    auto end1     = joint::make_joint(numbers1.end(), strings1.end());
-
-    createSortedVectors();
-    auto numbers2 = numbers;
-    auto strings2 = strings;
-    auto begin2   = joint::make_joint(numbers2.begin(), strings2.begin());
-    auto end2     = joint::make_joint(numbers2.end(), strings2.end());
-
-    this->numbers.resize(numbers1.size() + numbers2.size());
-    this->strings.resize(strings1.size() + strings2.size());
-    begin = joint::make_joint(numbers.begin(), strings.begin());
-
-    std::merge(begin1, end1, begin2, end2, begin, comparator);
-
-    testVectorsAreEqual();
-
-    std::vector<int> numbers(numbers1.size() + numbers2.size());
-    std::merge(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end(), numbers.begin());
-
-    EXPECT_EQ(numbers, this->numbers);
-}
-
-TEST_F(TestAlgorithm, NthElement)
-{
-    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
-
-    createSortedVectors();
-    auto numbers = this->numbers;
-
-    std::nth_element(begin, begin + size / 2, end, comparator);
-
-    testVectorsAreEqual();
-
-    std::nth_element(numbers.begin(), numbers.begin() + size / 2, numbers.end());
-    EXPECT_EQ(numbers[size / 2], this->numbers[size / 2]);
+    EXPECT_TRUE(std::is_sorted(vector.begin(), vector.end()));
 }
