@@ -9,16 +9,20 @@ ADD_CUSTOM_TARGET (Test ALL COMMAND ctest -VV)
 
 ADD_EXECUTABLE (TestIterator TestIterator.cpp)
 ADD_TEST (NAME TestIterator COMMAND TestIterator)
-ADD_DEPENDENCIES(Test TestIterator)
+ADD_DEPENDENCIES (Test TestIterator)
 
 ADD_EXECUTABLE (TestAlgorithm TestAlgorithm.cpp)
 ADD_TEST (NAME TestAlgorithm COMMAND TestAlgorithm)
-ADD_DEPENDENCIES(Test TestAlgorithm)
+ADD_DEPENDENCIES (Test TestAlgorithm)
 
-#ADD_EXECUTABLE (TestSortPerformance1 TestSortPerformance1.cpp)
-#ADD_TEST (NAME TestSortPerformance1 COMMAND TestSortPerformance1)
-#ADD_DEPENDENCIES(Test TestSortPerformance1)
-#
-#ADD_EXECUTABLE (TestSortPerformance2 TestSortPerformance2.cpp)
-#ADD_TEST (NAME TestSortPerformance2 COMMAND TestSortPerformance2)
-#ADD_DEPENDENCIES(Test TestSortPerformance2)
+OPTION (MAKE_PERFORMANCE_TESTS "Make (and run) performance tests" OFF)
+
+IF (MAKE_PERFORMANCE_TESTS)
+    ADD_EXECUTABLE (TestSortPerformance1 TestSortPerformance1.cpp)
+    ADD_TEST (NAME TestSortPerformance1 COMMAND TestSortPerformance1)
+    ADD_DEPENDENCIES (Test TestSortPerformance1)
+
+    ADD_EXECUTABLE (TestSortPerformance2 TestSortPerformance2.cpp)
+    ADD_TEST (NAME TestSortPerformance2 COMMAND TestSortPerformance2)
+    ADD_DEPENDENCIES (Test TestSortPerformance2)
+ENDIF ()

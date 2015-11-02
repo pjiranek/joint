@@ -32,7 +32,7 @@ class TestSortPerformance2 : public ::testing::Test
         joint_iterator begin;
         joint_iterator end;
 
-        static size_t const size = 65536;
+        static size_t const size = 1048576;
 
         virtual void SetUp()
         {
