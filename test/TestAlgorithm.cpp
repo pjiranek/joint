@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <random>
+#include <algorithm>
 
 #include "joint_iterator.hpp"
 
@@ -212,6 +213,8 @@ TEST_F(TestAlgorithm, PartialSortCopy)
 
 TEST_F(TestAlgorithm, Merge)
 {
+    auto comparator = [](reference const & a, reference const & b) { return a.get<0>() < b.get<0>(); };
+
     createSortedVectors();
     auto numbers1 = numbers;
     auto strings1 = strings;
@@ -228,7 +231,7 @@ TEST_F(TestAlgorithm, Merge)
     this->strings.resize(strings1.size() + strings2.size());
     begin = joint::make_joint(numbers.begin(), strings.begin());
 
-    std::merge(begin1, end1, begin2, end2, begin);
+    std::merge(begin1, end1, begin2, end2, begin, comparator);
 
     testVectorsAreEqual();
 
@@ -245,7 +248,7 @@ TEST_F(TestAlgorithm, NthElement)
     createSortedVectors();
     auto numbers = this->numbers;
 
-    std::nth_element(begin, begin + size / 2, end);
+    std::nth_element(begin, begin + size / 2, end, comparator);
 
     testVectorsAreEqual();
 

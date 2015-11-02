@@ -419,11 +419,11 @@ namespace joint
     class iterator
     {
         public:
-            typedef typename Iterator::difference_type        difference_type;
             typedef std::random_access_iterator_tag           iterator_category;
-            typedef reference_wrapper<Iterator, Iterators...> reference;
             typedef value_wrapper<Iterator, Iterators...>     value_type;
+            typedef typename Iterator::difference_type        difference_type;
             typedef iterator<Iterator, Iterators...>          pointer;
+            typedef reference_wrapper<Iterator, Iterators...> reference;
         public:
 
             //! Default constructor.
@@ -577,7 +577,28 @@ namespace joint
         return a.template get<0>() < b.template get<0>();
     }
 
-    // NOTE It does not work for reference wrappers. Why???
+    // For some reason, GCC does not want to use an implicit conversion to value!
+
+    template<typename... Iterators>
+    bool operator<(reference_wrapper<Iterators...> const & a,
+                   reference_wrapper<Iterators...> const & b)
+    {
+        return a.template get<0>() < b.template get<0>();
+    }
+
+    template<typename... Iterators>
+    bool operator<(value_wrapper<Iterators...> const & a,
+                   reference_wrapper<Iterators...> const & b)
+    {
+        return a.template get<0>() < b.template get<0>();
+    }
+
+    template<typename... Iterators>
+    bool operator<(reference_wrapper<Iterators...> const & a,
+                   value_wrapper<Iterators...> const & b)
+    {
+        return a.template get<0>() < b.template get<0>();
+    }
 
 } // namespace joint
 
