@@ -129,7 +129,8 @@ The following test results were produced on my laptop:
 
 For large data structures (containing, e.g., large strings), using the default comparison operator or the comparator
 for the value types is not really a good idea since an object copies are created for each call to the comparator.
-Nevertheless, the performance is not bad in comparison with the implementations using additional data.
+Nevertheless, the performance is quite similar in comparison with the implementations using additional data
+(note that the data movements for `ALGO3` and `ALGO4` can be implemented efficiently using moves).
 
 Disclaimer
 ----------
