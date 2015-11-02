@@ -289,6 +289,30 @@ namespace joint
                                                              detail::copy_values_from_pointers());
             }
 
+            //! Create values from a tuple of values.
+            value_wrapper(std::tuple<typename std::iterator_traits<Iterators>::value_type...> const & values)
+                    : m_values(values) { }
+
+            //! Create values from a tuple of values.
+            value_wrapper(std::tuple<typename std::iterator_traits<Iterators>::value_type...> && values)
+                    : m_values(values) { }
+
+            //! Copy values from a tuple of values.
+            value_wrapper<Iterators...> &
+            operator=(std::tuple<typename std::iterator_traits<Iterators>::value_type...> const & values)
+            {
+                m_values = values;
+                return * this;
+            }
+
+            //! Copy values from a tuple of values.
+            value_wrapper<Iterators...> &
+            operator=(std::tuple<typename std::iterator_traits<Iterators>::value_type...> && values)
+            {
+                m_values = values;
+                return * this;
+            }
+
             //! Default copy constructor.
             value_wrapper(value_wrapper<Iterators...> const &) = default;
             //! Default copy assignment.
