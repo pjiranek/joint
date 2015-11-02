@@ -226,7 +226,7 @@ namespace joint
             //! Move assignment moves the content of other references into the data pointed to by "this" references.
             reference_wrapper<Iterators...> operator=(reference_wrapper<Iterators...> && refs)
             {
-                // NOTE This cannot be implemented using moves; otherwise, a simple std::copy() fails!
+                // NOTE This cannot be implemented using moves; otherwise, a simple std::copy() would fail!
                 detail::for_each_two_tuples_rhs_const_lvalue(m_pointers, refs.m_pointers,
                                                              detail::copy_pointer_values());
                 return * this;
@@ -243,17 +243,13 @@ namespace joint
 
             //! Get the I-th reference.
             template<size_t I>
-            typename std::tuple_element<I, std::tuple<Iterators...>>::type::reference get()
-            {
-                return * std::get<I>(m_pointers);
-            };
+            typename std::tuple_element<I, std::tuple<Iterators...>>::type::reference
+            get() { return * std::get<I>(m_pointers); }
 
             //! Get the I-th reference.
             template<size_t I>
-            typename std::tuple_element<I, std::tuple<Iterators...>>::type::reference const get() const
-            {
-                return * std::get<I>(m_pointers);
-            };
+            typename std::tuple_element<I, std::tuple<Iterators...>>::type::reference const
+            get() const { return * std::get<I>(m_pointers); }
 
         private:
 
@@ -335,17 +331,13 @@ namespace joint
 
             //! Get the I-th value.
             template<size_t I>
-            typename std::tuple_element<I, std::tuple<Iterators...>>::type::value_type & get()
-            {
-                return std::get<I>(m_values);
-            };
+            typename std::tuple_element<I, std::tuple<Iterators...>>::type::value_type &
+            get() { return std::get<I>(m_values); };
 
             //! Get the I-th value.
             template<size_t I>
-            typename std::tuple_element<I, std::tuple<Iterators...>>::type::value_type const & get() const
-            {
-                return std::get<I>(m_values);
-            };
+            typename std::tuple_element<I, std::tuple<Iterators...>>::type::value_type const &
+            get() const { return std::get<I>(m_values); }
 
         private:
             std::tuple<typename std::iterator_traits<Iterators>::value_type...> m_values;
@@ -505,13 +497,11 @@ namespace joint
 
             //! Get the I-th iterator.
             template<size_t I>
-            typename std::tuple_element<I, std::tuple<Iterator, Iterators...>>::type get() const
-            {
-                return std::get<I>(m_iterators);
-            };
+            typename std::tuple_element<I, std::tuple<Iterator, Iterators...>>::type
+            get() const { return std::get<I>(m_iterators); };
         private:
             // Mutable to avoid const_cast in operator*() const.
-            mutable std::tuple<Iterator, Iterators...>                   m_iterators;
+            mutable std::tuple<Iterator, Iterators...>           m_iterators;
             // This does nothing, just checks that all iterators are random access.
             detail::assert_random_access<Iterator, Iterators...> assert_random_access;
     };
