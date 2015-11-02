@@ -133,7 +133,7 @@ namespace joint
         struct copy_pointer_values
         {
             // Simple copy of the content of p2 to the object pointed to by p1 using the copy assignment.
-            template<typename P> void operator()(P * p1, P const * p2) { p1 = * p2; }
+            template<typename P> void operator()(P * p1, P const * p2) { * p1 = * p2; }
         };
 
         // Copy pointers.
@@ -226,8 +226,9 @@ namespace joint
             //! Move assignment moves the content of other references into the data pointed to by "this" references.
             reference_wrapper<Iterators...> operator=(reference_wrapper<Iterators...> && refs)
             {
-                detail::for_each_two_tuples_rhs_rvalue(m_pointers, std::move(refs.m_pointers),
-                                                       detail::move_pointer_values());
+                // NOTE This cannot be implemented using moves; otherwise, a simple std::copy() fails!
+                detail::for_each_two_tuples_rhs_const_lvalue(m_pointers, refs.m_pointers,
+                                                             detail::copy_pointer_values());
                 return * this;
             }
 
@@ -265,8 +266,8 @@ namespace joint
 
     //! Swap two reference wrappers.
     //!
-    //! Note that this method does not swap the two objects but instead swaps the contents in a componentwise fashion.
-    //! This function is why our approach works. The arguments cannot be taken by reference since the dereference
+    //! This method does not swap the two objects but instead swaps the contents in a componentwise fashion
+    //! and is the reason why our approach works. The arguments cannot be taken by reference since the dereference
     //! operator of the joint iterator does not return an l-value reference!
     template<typename... Iterators>
     void swap(reference_wrapper<Iterators...> a, reference_wrapper<Iterators...> b) noexcept
@@ -304,11 +305,8 @@ namespace joint
             //! Move assign values from references.
             value_wrapper<Iterators...> & operator=(reference_wrapper<Iterators...> && refs);
 
-            // NOTE The construction of values from rvalue references is disabled now since it does not do what it
-            // NOTE should do for some reason.
-
-            // Conversion is disabled now (ambiguous with the constructor).
-            // operator reference_wrapper<Iterators...> const();
+            //! This should convert a constant value to constant reference.
+            operator reference_wrapper<Iterators...> const() const;
 
             //! Get the I-th value.
             template<size_t I>
@@ -379,16 +377,16 @@ namespace joint
     value_wrapper<Iterators...> &
     value_wrapper<Iterators...>::operator=(reference_wrapper<Iterators...> && refs)
     {
-        detail::for_each_two_tuples_rhs_rvalue(m_values, refs.m_pointers,
+        detail::for_each_two_tuples_rhs_rvalue(m_values, std::move(refs.m_pointers),
                                                detail::move_values_from_pointers());
         return * this;
     }
 
-    // template<typename... Iterators>
-    // value_wrapper<Iterators...>::operator reference_wrapper<Iterators...> const()
-    // {
-    //     return reference_wrapper<Iterators...>(const_cast<value_wrapper<Iterators...> &>(* this));
-    // }
+    template<typename... Iterators>
+    value_wrapper<Iterators...>::operator reference_wrapper<Iterators...> const() const
+    {
+        return reference_wrapper<Iterators...>(const_cast<value_wrapper<Iterators...> &>(* this));
+    }
 
     //! Joint iterator.
     template<typename Iterator, typename... Iterators>
@@ -403,7 +401,8 @@ namespace joint
         public:
 
             //! Default constructor.
-            iterator() : m_iterators() { }
+            iterator()
+                    : m_iterators() { }
 
             //! Create a joint iterator given a list of iterators.
             iterator(std::tuple<Iterator, Iterators...> iterators)
