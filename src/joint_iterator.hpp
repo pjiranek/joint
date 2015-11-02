@@ -329,6 +329,7 @@ namespace joint
             //! Move assign values from references.
             value_wrapper<Iterators...> & operator=(reference_wrapper<Iterators...> && refs);
 
+            // This method should serve as a conversion of the value to a const reference.
             //! This should convert a constant value to constant reference.
             operator reference_wrapper<Iterators...> const() const;
 
