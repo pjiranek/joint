@@ -375,6 +375,7 @@ namespace joint
     reference_wrapper<Iterators...> &
     reference_wrapper<Iterators...>::operator=(value_wrapper<Iterators...> && vals)
     {
+        // This seems to be like the only place where we can safely do a move!
         detail::for_each_two_tuples_rhs_rvalue(this->m_pointers, std::move(vals.m_values),
                                                detail::move_values_to_pointers());
         return * this;
@@ -393,8 +394,8 @@ namespace joint
     value_wrapper<Iterators...> &
     value_wrapper<Iterators...>::operator=(reference_wrapper<Iterators...> const & refs)
     {
-        detail::for_each_two_tuples_rhs_rvalue(m_values, refs.m_pointers,
-                                               detail::copy_values_from_pointers());
+        detail::for_each_two_tuples_rhs_const_lvalue(m_values, refs.m_pointers,
+                                                     detail::copy_values_from_pointers());
         return * this;
     }
 
@@ -402,8 +403,8 @@ namespace joint
     value_wrapper<Iterators...> &
     value_wrapper<Iterators...>::operator=(reference_wrapper<Iterators...> && refs)
     {
-        detail::for_each_two_tuples_rhs_rvalue(m_values, std::move(refs.m_pointers),
-                                               detail::move_values_from_pointers());
+        detail::for_each_two_tuples_rhs_const_lvalue(m_values, refs.m_pointers,
+                                                     detail::copy_values_from_pointers());
         return * this;
     }
 
