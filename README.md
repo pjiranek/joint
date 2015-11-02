@@ -131,6 +131,7 @@ For large data structures (containing, e.g., large strings), using the default c
 for the value types is not really a good idea since an object copies are created for each call to the comparator.
 Nevertheless, the performance is quite similar in comparison with the implementations using additional data
 (note that the data movements for `ALGO3` and `ALGO4` can be implemented efficiently using moves).
+Making an additional copy per comparison in `ALGO1` does not need to add much overhead for light-weight objects.
 
 Disclaimer
 ----------
