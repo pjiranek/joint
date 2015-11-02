@@ -114,9 +114,9 @@ The following test results were produced on my laptop:
     <tr>
         <td><tt>T = std::string</tt></td>
         <td>6979ms</td>
-        <td>127ms</td>
-        <td>138ms</td>
-        <td>107ms</td>
+        <td>139ms</td>
+        <td>115ms</td>
+        <td>90ms</td>
     </tr>
     <tr>
         <td><tt>T = long</tt></td>
@@ -133,7 +133,24 @@ Nevertheless, the performance is quite similar in comparison with the implementa
 (note that the data movements for `ALGO3` and `ALGO4` can be implemented efficiently using moves).
 Making an additional copy per comparison in `ALGO1` does not need to add much overhead for light-weight objects.
 
+Notes
+-----
+
+There is a certain performance issues related to move assignments.
+For the `joint::iterator`, in the standard copy construct
+
+    *target++ = *source++;
+
+executes the move assignment of the reference wrapper since the dereference operator returns an r-value.
+However, the actual move cannot be executed and must be replaced by a copy assignment in order to do not rip the guts
+of the source objects by this statement.
+The problem is that
+
+    *target++ = std::move(*source++);
+
+does exactly the same thing: it *copies* instead of *moves*.
+
 Disclaimer
 ----------
 
-The code is probably not very clean but works :-)
+I am not responsible for whatever this code does. :-)
