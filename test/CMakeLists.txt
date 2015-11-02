@@ -21,9 +21,13 @@ IF (MAKE_TESTS)
     ADD_EXECUTABLE (TestAlgorithm TestAlgorithm.cpp)
     ADD_TEST (NAME TestAlgorithm COMMAND TestAlgorithm)
 
+    ADD_EXECUTABLE (TestSortTrace TestSortTrace.cpp)
+    ADD_TEST (NAME TestSortTrace COMMAND TestSortTrace)
+
     IF (EXECUTE_TESTS)
         ADD_DEPENDENCIES (Test TestIterator)
         ADD_DEPENDENCIES (Test TestAlgorithm)
+        ADD_DEPENDENCIES (Test TestSortTrace)
     ENDIF ()
 
     ADD_EXECUTABLE (TestSortPerformance1 TestSortPerformance1.cpp)
