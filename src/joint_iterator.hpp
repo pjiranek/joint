@@ -497,6 +497,9 @@ namespace joint
             //! Return a reference wrapper associated with this iterator.
             reference operator*() { return reference(this->m_iterators); }
 
+            //! Return a reference wrapper associated with this iterator.
+            reference const operator*() const { return reference(this->m_iterators); }
+
             //! Get the pointer (not very useful, just returns this object).
             pointer operator->() { return * this; }
 
@@ -507,7 +510,8 @@ namespace joint
                 return std::get<I>(m_iterators);
             };
         private:
-            std::tuple<Iterator, Iterators...>                   m_iterators;
+            // Mutable to avoid const_cast in operator*() const.
+            mutable std::tuple<Iterator, Iterators...>                   m_iterators;
             // This does nothing, just checks that all iterators are random access.
             detail::assert_random_access<Iterator, Iterators...> assert_random_access;
     };
